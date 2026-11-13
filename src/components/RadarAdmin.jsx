@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BUREAUX_ADMIN_INITIAUX } from '../data/electoralData';
-import { Radio, AlertOctagon, CheckCircle2, Clock, MapPin, ThumbsUp, PlusCircle, Search, Filter, ShieldCheck, Flame } from 'lucide-react';
+import { Search, Plus, ThumbsUp, Clock, MapPin, Building2, Check, AlertCircle } from 'lucide-react';
 
 export function RadarAdmin() {
   const [bureaux, setBureaux] = useState(() => {
@@ -9,12 +9,11 @@ export function RadarAdmin() {
   });
 
   const [selectedRegion, setSelectedRegion] = useState('Toutes');
-  const [filterStatut, setFilterStatut] = useState('tous'); // 'tous' | 'urgent' | 'ouvert'
+  const [filterStatut, setFilterStatut] = useState('tous');
   const [searchQuery, setSearchQuery] = useState('');
   const [showModal, setShowModal] = useState(false);
 
-  // Formulaire nouveau signalement
-  const [nouveauSignalement, setNouveauSignalement] = useState({
+  const [nouveau, setNouveau] = useState({
     nom: '',
     type: 'Sous-Préfecture',
     region: 'Centre',
@@ -31,33 +30,22 @@ export function RadarAdmin() {
   }, [bureaux]);
 
   const handleConfirmer = (id) => {
-    setBureaux(prev => prev.map(b => {
-      if (b.id === id) {
-        return {
-          ...b,
-          nbConfirmations: (b.nbConfirmations || 0) + 1,
-          dernierSignalement: "À l'instant"
-        };
-      }
-      return b;
-    }));
+    setBureaux(prev => prev.map(b => b.id === id ? { ...b, nbConfirmations: (b.nbConfirmations || 0) + 1, dernierSignalement: "À l'instant" } : b));
   };
 
-  const handleAjouterSignalement = (e) => {
+  const handleAjouter = (e) => {
     e.preventDefault();
-    if (!nouveauSignalement.nom) return;
-
-    const newBureau = {
-      ...nouveauSignalement,
-      id: `bureau_${Date.now()}`,
+    if (!nouveau.nom) return;
+    const item = {
+      ...nouveau,
+      id: `b_${Date.now()}`,
       nbConfirmations: 1,
       dernierSignalement: "À l'instant",
-      niveauAlerte: nouveauSignalement.statutSousPrefet === 'Absent' || nouveauSignalement.statutGuichet === 'Fermé sans motif' ? 'Critique' : 'Faible'
+      niveauAlerte: nouveau.statutSousPrefet === 'Absent' ? 'Critique' : 'Faible'
     };
-
-    setBureaux([newBureau, ...bureaux]);
+    setBureaux([item, ...bureaux]);
     setShowModal(false);
-    setNouveauSignalement({
+    setNouveau({
       nom: '',
       type: 'Sous-Préfecture',
       region: 'Centre',
@@ -70,64 +58,48 @@ export function RadarAdmin() {
     });
   };
 
-  // Filtrage
-  const filteredBureaux = bureaux.filter(b => {
+  const filtered = bureaux.filter(b => {
     const matchRegion = selectedRegion === 'Toutes' || b.region === selectedRegion;
-    const matchSearch = b.nom.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                        b.ville.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                        b.departement.toLowerCase().includes(searchQuery.toLowerCase());
-    
+    const matchSearch = b.nom.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                        b.ville.toLowerCase().includes(searchQuery.toLowerCase());
     let matchStatut = true;
-    if (filterStatut === 'urgent') {
-      matchStatut = b.statutSousPrefet === 'Absent' || b.statutGuichet.includes('Fermé') || b.statutGuichet.includes('Déserté') || !b.timbresDisponibles;
-    } else if (filterStatut === 'ouvert') {
-      matchStatut = b.statutSousPrefet === 'Présent' && !b.statutGuichet.includes('Fermé');
-    }
-
+    if (filterStatut === 'ferme') matchStatut = b.statutSousPrefet === 'Absent' || b.statutGuichet.includes('Fermé');
+    if (filterStatut === 'ouvert') matchStatut = b.statutSousPrefet === 'Présent' && !b.statutGuichet.includes('Fermé');
     return matchRegion && matchSearch && matchStatut;
   });
 
   const regions = ['Toutes', 'Centre', 'Littoral', 'Ouest', 'Nord', 'Nord-Ouest', 'Sud-Ouest', 'Adamaoua', 'Est', 'Extrême-Nord', 'Sud'];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* En-tête du Radar */}
-      <div className="bg-[#18181F] border border-[#2E2E3A] p-4 sm:p-5 rounded-2xl shadow-md">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="mr-card">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <div className="flex items-center gap-2">
-              <span className="bg-[#B71C1C] text-white text-[10px] font-black px-2 py-0.5 rounded flex items-center gap-1 uppercase">
-                <Flame size={12} className="text-[#FFD54F]" />
-                En Direct Terrain
-              </span>
-              <h2 className="text-lg font-black font-heading text-white">
-                RADAR CITOYEN DES SOUS-PRÉFECTURES & GUICHETS
-              </h2>
-            </div>
-            <p className="text-xs text-gray-400 mt-1">
-              Surveillance participative en direct pour déjouer les tactiques de désertion et les fausses pénuries de timbres.
+            <h2 className="text-base sm:text-lg font-bold text-white">
+              Radar terrain des services publics
+            </h2>
+            <p className="text-xs text-[var(--muted)] mt-0.5">
+              Signalements citoyens en direct : présence des sous-préfets, ouverture des guichets et timbres.
             </p>
           </div>
 
-          <button
-            onClick={() => setShowModal(true)}
-            className="flex items-center justify-center gap-2 bg-[#D32F2F] hover:bg-red-700 text-white px-4 py-2.5 rounded-xl text-xs font-bold transition shadow-lg border border-red-500/40"
-          >
-            <PlusCircle size={16} />
-            <span>Signaler un Bureau Maintenant</span>
+          <button onClick={() => setShowModal(true)} className="mr-btn mr-btn-primary self-start sm:self-auto">
+            <Plus size={16} />
+            <span>Signaler un bureau</span>
           </button>
         </div>
 
-        {/* Barre de recherche et filtres */}
-        <div className="mt-4 pt-4 border-t border-gray-800 grid grid-cols-1 sm:grid-cols-3 gap-3">
+        {/* Filtres */}
+        <div className="mt-4 pt-3 border-t border-[var(--border)] grid grid-cols-1 sm:grid-cols-3 gap-2.5">
           <div className="relative">
-            <Search className="absolute left-3 top-2.5 text-gray-500" size={15} />
+            <Search className="absolute left-3 top-2.5 text-[var(--muted)]" size={14} />
             <input
               type="text"
-              placeholder="Rechercher une sous-préfecture, un tribunal ou une ville..."
+              placeholder="Rechercher une sous-préfecture, ville..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-[#101015] border border-gray-700 rounded-xl pl-9 pr-3 py-2 text-xs text-white focus:outline-none focus:border-[#D32F2F]"
+              className="mr-input pl-8"
             />
           </div>
 
@@ -135,280 +107,200 @@ export function RadarAdmin() {
             <select
               value={selectedRegion}
               onChange={(e) => setSelectedRegion(e.target.value)}
-              className="w-full bg-[#101015] border border-gray-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#D32F2F]"
+              className="mr-input"
             >
-              {regions.map(r => (
-                <option key={r} value={r}>Région : {r}</option>
-              ))}
+              {regions.map(r => <option key={r} value={r}>Région : {r}</option>)}
             </select>
           </div>
 
-          <div className="flex bg-[#101015] p-1 rounded-xl border border-gray-800">
-            <button
-              onClick={() => setFilterStatut('tous')}
-              className={`flex-1 py-1 px-2 rounded-lg text-xs font-bold transition ${
-                filterStatut === 'tous' ? 'bg-gray-700 text-white' : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              Tous ({bureaux.length})
-            </button>
-            <button
-              onClick={() => setFilterStatut('urgent')}
-              className={`flex-1 py-1 px-2 rounded-lg text-xs font-bold transition ${
-                filterStatut === 'urgent' ? 'bg-[#B71C1C] text-white' : 'text-red-400 hover:text-red-300'
-              }`}
-            >
-              🚨 Bloqués
-            </button>
-            <button
-              onClick={() => setFilterStatut('ouvert')}
-              className={`flex-1 py-1 px-2 rounded-lg text-xs font-bold transition ${
-                filterStatut === 'ouvert' ? 'bg-emerald-700 text-white' : 'text-emerald-400 hover:text-emerald-300'
-              }`}
-            >
-              🟢 Ouverts
-            </button>
+          <div className="flex bg-[#101015] p-1 rounded-lg border border-[var(--border)]">
+            {[
+              { id: 'tous', label: `Tous (${bureaux.length})` },
+              { id: 'ferme', label: 'Bureaux fermés' },
+              { id: 'ouvert', label: 'Ouverts' }
+            ].map(f => (
+              <button
+                key={f.id}
+                onClick={() => setFilterStatut(f.id)}
+                className={`flex-1 py-1 text-xs font-medium rounded transition ${
+                  filterStatut === f.id ? 'bg-[var(--brand)] text-white' : 'text-[var(--muted)] hover:text-white'
+                }`}
+              >
+                {f.label}
+              </button>
+            ))}
           </div>
         </div>
       </div>
 
-      {/* Grille des Administrations */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {filteredBureaux.length === 0 ? (
-          <div className="col-span-2 text-center py-12 bg-[#18181F] rounded-2xl border border-gray-800 text-gray-400 text-xs">
-            Aucune administration ne correspond à votre recherche pour le moment.
-          </div>
-        ) : (
-          filteredBureaux.map((b) => {
-            const isCritical = b.statutSousPrefet === 'Absent' || b.statutGuichet.includes('Fermé') || b.statutGuichet.includes('Déserté');
-            return (
-              <div
-                key={b.id}
-                className={`p-4 rounded-2xl border transition-all relative overflow-hidden ${
-                  isCritical 
-                    ? 'bg-[#1C1315] border-red-900/60 shadow-lg' 
-                    : 'bg-[#18181F] border-[#2A2A35]'
-                }`}
-              >
-                {/* Liseré indicateur d'urgence */}
-                <div className={`absolute top-0 left-0 right-0 h-1 ${
-                  isCritical ? 'bg-red-600 animate-pulse' : 'bg-emerald-500'
-                }`}></div>
-
+      {/* Liste des administrations */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        {filtered.map(b => {
+          const isClosed = b.statutSousPrefet === 'Absent' || b.statutGuichet.includes('Fermé');
+          return (
+            <div key={b.id} className="mr-card flex flex-col justify-between">
+              <div>
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-black/50 text-[#FFD54F] border border-gray-800">
-                        {b.region} • {b.ville}
-                      </span>
-                      <span className="text-[10px] font-semibold text-gray-400">
-                        {b.type}
-                      </span>
-                    </div>
-                    <h3 className="text-sm font-bold text-white mt-1.5">{b.nom}</h3>
+                    <span className="text-[11px] text-[var(--muted)] block">
+                      {b.region} • {b.ville} ({b.type})
+                    </span>
+                    <h3 className="text-sm font-bold text-white mt-0.5">{b.nom}</h3>
                   </div>
 
-                  <span className={`text-[10px] font-black px-2 py-0.5 rounded ${
-                    isCritical ? 'bg-red-950 text-red-300 border border-red-800' : 'bg-emerald-950 text-emerald-300 border border-emerald-800'
+                  <span className={`text-[11px] font-semibold px-2 py-0.5 rounded ${
+                    isClosed ? 'bg-red-950/70 text-red-300 border border-red-900/60' : 'bg-emerald-950/70 text-emerald-300 border border-emerald-900/60'
                   }`}>
-                    {isCritical ? 'ALERTE BLOCAGE' : 'SERVICE DISPONIBLE'}
+                    {isClosed ? 'Fermé / Absent' : 'Ouvert'}
                   </span>
                 </div>
 
-                {/* Indicateurs clés : Sous-préfet, Guichet, Timbres */}
-                <div className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-gray-800/80 text-xs text-center">
-                  <div className="bg-[#121217] p-2 rounded-xl border border-gray-800">
-                    <span className="text-[10px] text-gray-400 block">Sous-Préfet / Chef</span>
-                    <span className={`font-bold text-xs mt-0.5 block ${
-                      b.statutSousPrefet === 'Présent' ? 'text-emerald-400' : 'text-red-400'
-                    }`}>
-                      {b.statutSousPrefet === 'Présent' ? '✓ Présent' : '✗ Absent'}
-                    </span>
+                <div className="grid grid-cols-3 gap-2 mt-3 text-xs">
+                  <div className="bg-[#111116] p-2 rounded border border-[var(--border)]">
+                    <span className="text-[10px] text-[var(--muted)] block">Sous-Préfet</span>
+                    <strong className={b.statutSousPrefet === 'Présent' ? 'text-emerald-400' : 'text-red-400'}>
+                      {b.statutSousPrefet}
+                    </strong>
                   </div>
 
-                  <div className="bg-[#121217] p-2 rounded-xl border border-gray-800">
-                    <span className="text-[10px] text-gray-400 block">État Guichet</span>
-                    <span className={`font-bold text-xs mt-0.5 block truncate ${
-                      b.statutGuichet.includes('Ouvert') ? 'text-emerald-400' : 'text-amber-400'
-                    }`}>
-                      {b.statutGuichet}
-                    </span>
+                  <div className="bg-[#111116] p-2 rounded border border-[var(--border)]">
+                    <span className="text-[10px] text-[var(--muted)] block">Guichet</span>
+                    <strong className="text-gray-200 truncate block">{b.statutGuichet}</strong>
                   </div>
 
-                  <div className="bg-[#121217] p-2 rounded-xl border border-gray-800">
-                    <span className="text-[10px] text-gray-400 block">Timbres Fiscaux</span>
-                    <span className={`font-bold text-xs mt-0.5 block ${
-                      b.timbresDisponibles ? 'text-emerald-400' : 'text-red-400'
-                    }`}>
-                      {b.timbresDisponibles ? '✓ En stock' : '✗ Pénurie'}
-                    </span>
+                  <div className="bg-[#111116] p-2 rounded border border-[var(--border)]">
+                    <span className="text-[10px] text-[var(--muted)] block">Timbres</span>
+                    <strong className={b.timbresDisponibles ? 'text-emerald-400' : 'text-red-400'}>
+                      {b.timbresDisponibles ? 'Disponibles' : 'Pénurie'}
+                    </strong>
                   </div>
                 </div>
 
-                {/* Motif / Commentaire terrain */}
                 {b.motifBlocage && (
-                  <div className="mt-2.5 p-2 rounded-xl bg-black/50 border border-gray-800 text-[11px] text-gray-300">
-                    <strong className="text-amber-300">Constat de terrain :</strong> {b.motifBlocage}
-                  </div>
+                  <p className="mt-2 text-xs text-gray-300 bg-[#111116] p-2 rounded border border-[var(--border)]">
+                    <span className="text-[var(--muted)]">Observation :</span> {b.motifBlocage}
+                  </p>
                 )}
-
-                {/* Bas de carte : Horodatage & Bouton de confirmation citoyenne */}
-                <div className="mt-3 pt-2 border-t border-gray-800/60 flex items-center justify-between text-[11px] text-gray-400">
-                  <div className="flex items-center gap-1">
-                    <Clock size={12} />
-                    <span>Signalé : {b.dernierSignalement}</span>
-                  </div>
-
-                  <button
-                    onClick={() => handleConfirmer(b.id)}
-                    className="flex items-center gap-1.5 bg-[#23232E] hover:bg-[#2D2D3B] text-yellow-300 px-2.5 py-1 rounded-lg font-semibold transition border border-gray-700"
-                  >
-                    <ThumbsUp size={12} />
-                    <span>Je confirme ({b.nbConfirmations || 0})</span>
-                  </button>
-                </div>
               </div>
-            );
-          })
-        )}
+
+              <div className="mt-3 pt-2.5 border-t border-[var(--border)] flex items-center justify-between text-xs text-[var(--muted)]">
+                <span className="flex items-center gap-1">
+                  <Clock size={12} /> {b.dernierSignalement}
+                </span>
+
+                <button
+                  onClick={() => handleConfirmer(b.id)}
+                  className="mr-btn mr-btn-secondary py-1 text-xs text-[var(--accent)]"
+                >
+                  <ThumbsUp size={12} />
+                  <span>Confirmer ({b.nbConfirmations || 0})</span>
+                </button>
+              </div>
+            </div>
+          );
+        })}
       </div>
 
-      {/* Modal pour nouveau signalement */}
+      {/* Modal nouveau signalement */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#18181F] border border-[#2E2E3A] rounded-2xl max-w-lg w-full p-5 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-gray-800 pb-3">
-              <div>
-                <h3 className="text-base font-black font-heading text-white">
-                  ALERTER LA COMMUNAUTÉ SUR UN SERVICE
-                </h3>
-                <p className="text-xs text-gray-400">
-                  Signalement anonyme et instantané pour informer les candidats.
-                </p>
-              </div>
-              <button 
-                onClick={() => setShowModal(false)}
-                className="text-gray-400 hover:text-white text-lg font-bold"
-              >
-                ✕
-              </button>
+        <div className="fixed inset-0 bg-black/75 z-50 flex items-center justify-center p-3">
+          <div className="mr-card max-w-md w-full p-4 space-y-3 bg-[#18181f]">
+            <div className="flex items-center justify-between border-b border-[var(--border)] pb-2">
+              <h3 className="text-sm font-bold text-white">Nouveau signalement terrain</h3>
+              <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-white">✕</button>
             </div>
 
-            <form onSubmit={handleAjouterSignalement} className="space-y-3 text-xs">
+            <form onSubmit={handleAjouter} className="space-y-2.5 text-xs">
               <div>
-                <label className="block text-gray-300 font-bold mb-1">Nom de l'Administration</label>
+                <label className="block text-[var(--muted)] mb-1">Nom du service</label>
                 <input
                   type="text"
                   required
-                  placeholder="Ex: Sous-préfecture de Nkongsamba / Tribunal de Ngaoundéré"
-                  value={nouveauSignalement.nom}
-                  onChange={(e) => setNouveauSignalement({ ...nouveauSignalement, nom: e.target.value })}
-                  className="w-full bg-[#101015] border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-[#D32F2F]"
+                  placeholder="Ex: Sous-préfecture de Yaoundé 1er"
+                  className="mr-input"
+                  value={nouveau.nom}
+                  onChange={(e) => setNouveau({ ...nouveau, nom: e.target.value })}
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-gray-300 font-bold mb-1">Région</label>
+                  <label className="block text-[var(--muted)] mb-1">Région</label>
                   <select
-                    value={nouveauSignalement.region}
-                    onChange={(e) => setNouveauSignalement({ ...nouveauSignalement, region: e.target.value })}
-                    className="w-full bg-[#101015] border border-gray-700 rounded-lg px-2 py-2 text-white"
+                    className="mr-input"
+                    value={nouveau.region}
+                    onChange={(e) => setNouveau({ ...nouveau, region: e.target.value })}
                   >
-                    {regions.filter(r => r !== 'Toutes').map(r => (
-                      <option key={r} value={r}>{r}</option>
-                    ))}
+                    {regions.filter(r => r !== 'Toutes').map(r => <option key={r} value={r}>{r}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-gray-300 font-bold mb-1">Ville / Commune</label>
+                  <label className="block text-[var(--muted)] mb-1">Ville</label>
                   <input
                     type="text"
                     required
-                    placeholder="Ex: Yaoundé / Douala"
-                    value={nouveauSignalement.ville}
-                    onChange={(e) => setNouveauSignalement({ ...nouveauSignalement, ville: e.target.value })}
-                    className="w-full bg-[#101015] border border-gray-700 rounded-lg px-3 py-2 text-white"
+                    className="mr-input"
+                    value={nouveau.ville}
+                    onChange={(e) => setNouveau({ ...nouveau, ville: e.target.value })}
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-gray-300 font-bold mb-1">Présence du Responsable</label>
+                  <label className="block text-[var(--muted)] mb-1">Sous-préfet / Chef</label>
                   <select
-                    value={nouveauSignalement.statutSousPrefet}
-                    onChange={(e) => setNouveauSignalement({ ...nouveauSignalement, statutSousPrefet: e.target.value })}
-                    className="w-full bg-[#101015] border border-gray-700 rounded-lg px-2 py-2 text-white"
+                    className="mr-input"
+                    value={nouveau.statutSousPrefet}
+                    onChange={(e) => setNouveau({ ...nouveau, statutSousPrefet: e.target.value })}
                   >
-                    <option value="Absent">Absent / En fuite</option>
-                    <option value="Présent">Présent au bureau</option>
-                    <option value="En réunion fermée">En réunion fermée</option>
+                    <option value="Absent">Absent</option>
+                    <option value="Présent">Présent</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-gray-300 font-bold mb-1">État du Guichet</label>
+                  <label className="block text-[var(--muted)] mb-1">Guichet</label>
                   <select
-                    value={nouveauSignalement.statutGuichet}
-                    onChange={(e) => setNouveauSignalement({ ...nouveauSignalement, statutGuichet: e.target.value })}
-                    className="w-full bg-[#101015] border border-gray-700 rounded-lg px-2 py-2 text-white"
+                    className="mr-input"
+                    value={nouveau.statutGuichet}
+                    onChange={(e) => setNouveau({ ...nouveau, statutGuichet: e.target.value })}
                   >
                     <option value="Fermé sans motif">Fermé sans motif</option>
-                    <option value="Déserté">Déserté par les agents</option>
-                    <option value="Ouvert">Ouvert normalement</option>
-                    <option value="Ralenti">Très ralenti</option>
+                    <option value="Ouvert">Ouvert</option>
+                    <option value="Déserté">Déserté</option>
                   </select>
                 </div>
               </div>
 
               <div>
-                <label className="block text-gray-300 font-bold mb-1">Disponibilité des Timbres Fiscaux</label>
-                <div className="flex gap-4">
-                  <label className="flex items-center gap-1.5 cursor-pointer text-gray-200">
-                    <input
-                      type="radio"
-                      name="timbres"
-                      checked={nouveauSignalement.timbresDisponibles === true}
-                      onChange={() => setNouveauSignalement({ ...nouveauSignalement, timbresDisponibles: true })}
-                    />
-                    <span>Disponibles aux prix officiels</span>
-                  </label>
-                  <label className="flex items-center gap-1.5 cursor-pointer text-red-400">
-                    <input
-                      type="radio"
-                      name="timbres"
-                      checked={nouveauSignalement.timbresDisponibles === false}
-                      onChange={() => setNouveauSignalement({ ...nouveauSignalement, timbresDisponibles: false })}
-                    />
-                    <span>Pénurie ou Racket / Marché noir</span>
-                  </label>
-                </div>
+                <label className="block text-[var(--muted)] mb-1">Timbres fiscaux</label>
+                <select
+                  className="mr-input"
+                  value={nouveau.timbresDisponibles ? 'oui' : 'non'}
+                  onChange={(e) => setNouveau({ ...nouveau, timbresDisponibles: e.target.value === 'oui' })}
+                >
+                  <option value="oui">Disponibles au tarif légal</option>
+                  <option value="non">Pénurie ou surfacturation</option>
+                </select>
               </div>
 
               <div>
-                <label className="block text-gray-300 font-bold mb-1">Détails / Précisions constatées</label>
+                <label className="block text-[var(--muted)] mb-1">Précisions constatées</label>
                 <textarea
-                  rows={3}
-                  placeholder="Ex: Le sous-préfet a quitté le bureau vers 10h en disant qu'il revient lundi..."
-                  value={nouveauSignalement.motifBlocage}
-                  onChange={(e) => setNouveauSignalement({ ...nouveauSignalement, motifBlocage: e.target.value })}
-                  className="w-full bg-[#101015] border border-gray-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-[#D32F2F]"
-                ></textarea>
+                  rows={2}
+                  className="mr-input"
+                  placeholder="Ex: Porte verrouillée depuis ce matin, aucun agent présent..."
+                  value={nouveau.motifBlocage}
+                  onChange={(e) => setNouveau({ ...nouveau, motifBlocage: e.target.value })}
+                />
               </div>
 
-              <div className="flex justify-end gap-2 pt-2 border-t border-gray-800">
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-xl font-bold"
-                >
+              <div className="flex justify-end gap-2 pt-2 border-t border-[var(--border)]">
+                <button type="button" onClick={() => setShowModal(false)} className="mr-btn mr-btn-secondary">
                   Annuler
                 </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 bg-[#D32F2F] hover:bg-red-700 text-white rounded-xl font-bold shadow-lg"
-                >
-                  Publier l'Alerte
+                <button type="submit" className="mr-btn mr-btn-primary">
+                  Enregistrer
                 </button>
               </div>
             </form>

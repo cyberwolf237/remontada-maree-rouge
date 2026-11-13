@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { ELECTIONS_DATA, MODELES_JURIDIQUES } from '../data/electoralData';
-import { CheckCircle2, Clock, AlertTriangle, FileDown, Copy, Check, Printer, Scale, Sparkles, Building2 } from 'lucide-react';
+import { Copy, Check, Printer, Scale, Building2, AlertTriangle, FileText } from 'lucide-react';
 
 export function DossierCandidat() {
-  const [scrutin, setScrutin] = useState('legislatives'); // 'legislatives' | 'municipales'
+  const [scrutin, setScrutin] = useState('legislatives');
   const [candidatInfo, setCandidatInfo] = useState(() => {
     const saved = localStorage.getItem('maree_candidat_info');
     return saved ? JSON.parse(saved) : {
@@ -11,12 +11,10 @@ export function DossierCandidat() {
       parti: 'La Remontada Citoyenne',
       departement: 'Mfoundi',
       arrondissement: 'Yaoundé 1er',
-      ville: 'Yaoundé',
-      circonscription: 'Centre - Mfoundi'
+      ville: 'Yaoundé'
     };
   });
 
-  // États des pièces (saved in localStorage)
   const [piecesStatus, setPiecesStatus] = useState(() => {
     const saved = localStorage.getItem('maree_pieces_status');
     return saved ? JSON.parse(saved) : {};
@@ -36,17 +34,13 @@ export function DossierCandidat() {
   const currentElection = ELECTIONS_DATA[scrutin];
   const pieces = currentElection.pieces;
 
-  // Calcul du taux de complétude
   const totalPieces = pieces.length;
   const validatedPieces = pieces.filter(p => piecesStatus[p.id] === 'valide').length;
   const blockedPieces = pieces.filter(p => piecesStatus[p.id] === 'bloque').length;
   const percentCompleted = Math.round((validatedPieces / totalPieces) * 100);
 
   const handleStatusChange = (pieceId, newStatus) => {
-    setPiecesStatus(prev => ({
-      ...prev,
-      [pieceId]: newStatus
-    }));
+    setPiecesStatus(prev => ({ ...prev, [pieceId]: newStatus }));
   };
 
   const currentModeleObj = MODELES_JURIDIQUES.find(m => m.id === selectedModele) || MODELES_JURIDIQUES[0];
@@ -61,7 +55,7 @@ export function DossierCandidat() {
   const handleCopy = () => {
     navigator.clipboard.writeText(texteGenere);
     setCopied(true);
-    setTimeout(() => setCopied(false), 2500);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   const handlePrint = () => {
@@ -70,9 +64,7 @@ export function DossierCandidat() {
       <html>
         <head>
           <title>${currentModeleObj.titre}</title>
-          <style>
-            body { font-family: monospace; padding: 20px; white-space: pre-wrap; font-size: 13px; line-height: 1.5; }
-          </style>
+          <style>body { font-family: -apple-system, system-ui, sans-serif; padding: 24px; white-space: pre-wrap; font-size: 13px; line-height: 1.6; color: #111; }</style>
         </head>
         <body>${texteGenere}</body>
       </html>
@@ -83,123 +75,116 @@ export function DossierCandidat() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Sélecteur de type d'élection */}
-      <div className="bg-[#18181F] border border-[#2E2E3A] p-4 rounded-2xl shadow-md">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="space-y-5">
+      {/* Sélecteur & Avancement */}
+      <div className="mr-card">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <h2 className="text-lg font-black font-heading text-white flex items-center gap-2">
-              <Scale className="text-[#FFD54F]" size={20} />
-              CONSTITUTION DU DOSSIER OFFICIEL
+            <h2 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
+              <Scale size={18} className="text-[var(--accent)]" />
+              Constitution du dossier officiel
             </h2>
-            <p className="text-xs text-gray-400">
-              Conformité stricte au Code Électoral camerounais (Loi n° 2012/001 du 19 avril 2012)
+            <p className="text-xs text-[var(--muted)] mt-0.5">
+              Code Électoral camerounais (Loi n° 2012/001 du 19 avril 2012).
             </p>
           </div>
 
-          <div className="flex bg-[#101015] p-1 rounded-xl border border-gray-800">
+          <div className="flex bg-[#101015] p-1 rounded-lg border border-[var(--border)] self-start sm:self-auto">
             <button
               onClick={() => setScrutin('legislatives')}
-              className={`px-4 py-2 rounded-lg text-xs font-bold transition ${
-                scrutin === 'legislatives'
-                  ? 'bg-[#B71C1C] text-white shadow'
-                  : 'text-gray-400 hover:text-white'
+              className={`px-3 py-1.5 rounded text-xs font-semibold transition ${
+                scrutin === 'legislatives' ? 'bg-[var(--brand)] text-white' : 'text-[var(--muted)] hover:text-white'
               }`}
             >
-              🏛️ Législatives (Députés)
+              Législatives (Députés)
             </button>
             <button
               onClick={() => setScrutin('municipales')}
-              className={`px-4 py-2 rounded-lg text-xs font-bold transition ${
-                scrutin === 'municipales'
-                  ? 'bg-[#B71C1C] text-white shadow'
-                  : 'text-gray-400 hover:text-white'
+              className={`px-3 py-1.5 rounded text-xs font-semibold transition ${
+                scrutin === 'municipales' ? 'bg-[var(--brand)] text-white' : 'text-[var(--muted)] hover:text-white'
               }`}
             >
-              🏢 Municipales (Maires)
+              Municipales (Maires)
             </button>
           </div>
         </div>
 
-        {/* Détails du scrutin et jauge */}
-        <div className="mt-4 pt-4 border-t border-gray-800 grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+        <div className="mt-4 pt-3 border-t border-[var(--border)] grid grid-cols-1 md:grid-cols-3 gap-3 items-center">
           <div className="md:col-span-2">
-            <div className="flex items-center justify-between text-xs mb-1.5">
-              <span className="font-bold text-gray-300">Niveau de complétude du dossier :</span>
-              <span className={`font-mono font-bold ${percentCompleted === 100 ? 'text-emerald-400' : 'text-[#FFD54F]'}`}>
-                {validatedPieces} sur {totalPieces} pièces validées ({percentCompleted}%)
+            <div className="flex items-center justify-between text-xs mb-1">
+              <span className="text-[var(--muted)]">Pièces complétées</span>
+              <span className="font-semibold text-white">
+                {validatedPieces}/{totalPieces} ({percentCompleted}%)
               </span>
             </div>
-            <div className="w-full bg-[#121217] h-3.5 rounded-full overflow-hidden border border-gray-800">
-              <div 
-                className="bg-gradient-to-r from-red-600 via-amber-500 to-emerald-500 h-full rounded-full transition-all duration-500"
+            <div className="w-full bg-[#101015] h-2.5 rounded-full overflow-hidden border border-[var(--border)]">
+              <div
+                className="bg-[var(--accent)] h-full transition-all duration-300"
                 style={{ width: `${percentCompleted}%` }}
-              ></div>
+              />
             </div>
             {blockedPieces > 0 && (
-              <p className="text-xs text-red-400 font-semibold mt-1.5 flex items-center gap-1">
-                <AlertTriangle size={13} /> Attention : {blockedPieces} pièce(s) actuellement bloquée(s) ou refusée(s) par l'administration !
+              <p className="text-xs text-red-400 mt-1 flex items-center gap-1">
+                <AlertTriangle size={13} /> {blockedPieces} pièce(s) signalée(s) comme bloquée(s) ou refusée(s).
               </p>
             )}
           </div>
 
-          <div className="bg-[#121217] p-3 rounded-xl border border-gray-800 text-xs">
-            <span className="text-gray-400 block">Cautionnement légal officiel :</span>
-            <span className="text-white font-bold text-sm block mt-0.5 text-yellow-300 font-mono">
-              {currentElection.cautionnement}
-            </span>
+          <div className="text-xs bg-[#101015] p-2.5 rounded-lg border border-[var(--border)]">
+            <span className="text-[var(--muted)] block">Cautionnement légal officiel :</span>
+            <strong className="text-white block mt-0.5">{currentElection.cautionnement}</strong>
           </div>
         </div>
       </div>
 
-      {/* Profil rapide du candidat (utilisé pour pré-remplir les sommations) */}
-      <div className="bg-[#18181F] border border-[#2E2E3A] p-4 rounded-2xl">
-        <h3 className="text-sm font-bold text-gray-200 mb-3 flex items-center gap-2">
-          <Building2 size={16} className="text-red-400" />
-          Vos coordonnées (pour le générateur automatique de sommations d'huissier)
+      {/* Renseignements rapides */}
+      <div className="mr-card">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--muted)] mb-3 flex items-center gap-2">
+          <Building2 size={15} />
+          Informations du candidat (pour les actes juridiques)
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>
-            <label className="text-[11px] font-semibold text-gray-400 block mb-1">Nom complet du Candidat / Tête de liste</label>
+            <label className="text-[11px] text-[var(--muted)] block mb-1">Nom du candidat</label>
             <input
               type="text"
-              placeholder="Ex: Mono Aristide / Tcheuko Paul"
+              className="mr-input"
+              placeholder="Ex: Mono Aristide"
               value={candidatInfo.nom}
               onChange={(e) => setCandidatInfo({ ...candidatInfo, nom: e.target.value })}
-              className="w-full bg-[#101015] border border-gray-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-[#D32F2F]"
             />
           </div>
           <div>
-            <label className="text-[11px] font-semibold text-gray-400 block mb-1">Arrondissement / Commune</label>
+            <label className="text-[11px] text-[var(--muted)] block mb-1">Arrondissement / Ville</label>
             <input
               type="text"
-              placeholder="Ex: Yaoundé 1er / Douala 5ème / Bafoussam 2"
+              className="mr-input"
+              placeholder="Ex: Yaoundé 1er"
               value={candidatInfo.arrondissement}
               onChange={(e) => setCandidatInfo({ ...candidatInfo, arrondissement: e.target.value })}
-              className="w-full bg-[#101015] border border-gray-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-[#D32F2F]"
             />
           </div>
           <div>
-            <label className="text-[11px] font-semibold text-gray-400 block mb-1">Parti Politique / Coalition</label>
+            <label className="text-[11px] text-[var(--muted)] block mb-1">Parti / Regroupement</label>
             <input
               type="text"
+              className="mr-input"
               placeholder="Ex: La Remontada Citoyenne"
               value={candidatInfo.parti}
               onChange={(e) => setCandidatInfo({ ...candidatInfo, parti: e.target.value })}
-              className="w-full bg-[#101015] border border-gray-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-[#D32F2F]"
             />
           </div>
         </div>
       </div>
 
-      {/* Grille des pièces obligatoires */}
-      <div className="space-y-3">
+      {/* Liste des pièces requises */}
+      <div className="space-y-2.5">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-bold text-gray-200">
-            Pièces requises pour le scrutin ({pieces.length} documents légaux)
+          <h3 className="text-sm font-bold text-white">
+            Documents obligatoires ({pieces.length})
           </h3>
-          <span className="text-[11px] text-gray-400">
-            Cliquez sur un statut pour mettre à jour
+          <span className="text-xs text-[var(--muted)]">
+            Cochez l'état d'avancement
           </span>
         </div>
 
@@ -207,82 +192,52 @@ export function DossierCandidat() {
           {pieces.map((piece) => {
             const status = piecesStatus[piece.id] || 'a_faire';
             return (
-              <div 
-                key={piece.id}
-                className={`p-4 rounded-xl border transition-all ${
-                  status === 'valide'
-                    ? 'bg-emerald-950/20 border-emerald-600/40'
-                    : status === 'bloque'
-                    ? 'bg-red-950/30 border-red-500/60 shadow-lg'
-                    : status === 'en_cours'
-                    ? 'bg-amber-950/20 border-amber-600/40'
-                    : 'bg-[#18181F] border-[#2A2A35]'
-                }`}
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <span className="text-[10px] uppercase font-black px-2 py-0.5 rounded bg-black/40 border border-gray-800 text-[#FFD54F]">
+              <div key={piece.id} className="mr-card flex flex-col justify-between">
+                <div>
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="text-[11px] font-mono text-[var(--accent)]">
                       {piece.articles}
                     </span>
-                    <h4 className="text-sm font-bold text-white mt-1.5">{piece.nom}</h4>
+                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded ${
+                      piece.priorite === 'Critique' ? 'bg-red-950/80 text-red-300 border border-red-900' : 'bg-[#23232d] text-gray-300'
+                    }`}>
+                      {piece.priorite}
+                    </span>
                   </div>
+                  <h4 className="text-sm font-bold text-white mt-1">{piece.nom}</h4>
                   
-                  {/* Badge de priorité */}
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${
-                    piece.priorite === 'Critique' ? 'bg-red-900 text-red-200' : 'bg-gray-800 text-gray-300'
-                  }`}>
-                    {piece.priorite}
-                  </span>
-                </div>
+                  <div className="text-xs text-[var(--muted)] mt-2 space-y-0.5">
+                    <p><strong className="text-gray-300">Lieu :</strong> {piece.autorite}</p>
+                    <p><strong className="text-gray-300">Coût officiel :</strong> {piece.cout} • Délai : {piece.delai}</p>
+                  </div>
 
-                <div className="mt-2.5 text-xs text-gray-300 space-y-1">
-                  <div><strong className="text-gray-400">Autorité :</strong> {piece.autorite}</div>
-                  <div className="flex items-center justify-between">
-                    <span><strong className="text-gray-400">Coût légal :</strong> {piece.cout}</span>
-                    <span className="text-gray-400">Délai : {piece.delai}</span>
+                  <div className="mt-2 text-[11px] bg-[#121217] p-2 rounded border border-[var(--border)] text-gray-300">
+                    <strong className="text-amber-400">Point de vigilance :</strong> {piece.piege}
                   </div>
                 </div>
 
-                {/* Piège de l'administration */}
-                <div className="mt-2.5 p-2 rounded-lg bg-black/40 border border-red-900/40 text-[11px] text-amber-200/90 flex items-start gap-1.5">
-                  <AlertTriangle size={13} className="text-amber-400 flex-shrink-0 mt-0.5" />
-                  <span><strong>Piège courant :</strong> {piece.piege}</span>
-                </div>
-
-                {/* Sélecteur de statut */}
-                <div className="mt-3 pt-3 border-t border-gray-800 flex items-center justify-between gap-1">
-                  <button
-                    onClick={() => handleStatusChange(piece.id, 'a_faire')}
-                    className={`flex-1 py-1 px-2 rounded text-[11px] font-bold transition ${
-                      status === 'a_faire' ? 'bg-gray-700 text-white' : 'text-gray-400 hover:bg-gray-800'
-                    }`}
-                  >
-                    À faire
-                  </button>
-                  <button
-                    onClick={() => handleStatusChange(piece.id, 'en_cours')}
-                    className={`flex-1 py-1 px-2 rounded text-[11px] font-bold transition ${
-                      status === 'en_cours' ? 'bg-amber-600 text-white' : 'text-amber-400 hover:bg-amber-950/40'
-                    }`}
-                  >
-                    En cours
-                  </button>
-                  <button
-                    onClick={() => handleStatusChange(piece.id, 'bloque')}
-                    className={`flex-1 py-1 px-2 rounded text-[11px] font-bold transition ${
-                      status === 'bloque' ? 'bg-red-700 text-white animate-pulse' : 'text-red-400 hover:bg-red-950/40'
-                    }`}
-                  >
-                    Bloqué / Refus
-                  </button>
-                  <button
-                    onClick={() => handleStatusChange(piece.id, 'valide')}
-                    className={`flex-1 py-1 px-2 rounded text-[11px] font-bold transition ${
-                      status === 'valide' ? 'bg-emerald-600 text-white' : 'text-emerald-400 hover:bg-emerald-950/40'
-                    }`}
-                  >
-                    Validé ✓
-                  </button>
+                <div className="mt-3 pt-2.5 border-t border-[var(--border)] grid grid-cols-4 gap-1">
+                  {[
+                    { id: 'a_faire', label: 'À faire' },
+                    { id: 'en_cours', label: 'En cours' },
+                    { id: 'bloque', label: 'Bloqué' },
+                    { id: 'valide', label: 'Validé' }
+                  ].map(s => (
+                    <button
+                      key={s.id}
+                      onClick={() => handleStatusChange(piece.id, s.id)}
+                      className={`py-1 text-[11px] font-medium rounded transition ${
+                        status === s.id
+                          ? s.id === 'valide' ? 'bg-emerald-700 text-white font-bold'
+                            : s.id === 'bloque' ? 'bg-red-800 text-white font-bold'
+                            : s.id === 'en_cours' ? 'bg-amber-600 text-white font-bold'
+                            : 'bg-gray-700 text-white font-bold'
+                          : 'text-[var(--muted)] hover:bg-[#23232d]'
+                      }`}
+                    >
+                      {s.label}
+                    </button>
+                  ))}
                 </div>
               </div>
             );
@@ -290,51 +245,40 @@ export function DossierCandidat() {
         </div>
       </div>
 
-      {/* Générateur d'actes d'urgence et sommations d'huissier */}
-      <div className="bg-[#18181F] border-2 border-[#D32F2F]/60 p-5 rounded-2xl shadow-xl">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+      {/* Générateur d'actes d'urgence */}
+      <div className="mr-card border-[var(--border)]">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
           <div>
-            <div className="flex items-center gap-2">
-              <span className="bg-[#B71C1C] text-white text-[10px] font-black px-2 py-0.5 rounded uppercase">
-                Bouclier Juridique
-              </span>
-              <h3 className="text-base font-black font-heading text-white">
-                GÉNÉRATEUR D'ACTES D'URGENCE & RECOURS
-              </h3>
-            </div>
-            <p className="text-xs text-gray-400 mt-0.5">
-              Si le sous-préfet est absent ou si un guichet refuse un document, faites délivrer cet exploit sans attendre la forclusion.
+            <h3 className="text-sm font-bold text-white flex items-center gap-2">
+              <FileText size={16} className="text-[var(--accent)]" />
+              Modèles de sommations d'huissier & recours administratifs
+            </h3>
+            <p className="text-xs text-[var(--muted)]">
+              En cas de désertion ou de refus de signature, ces exploits servent de preuve légale d'entrave.
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handleCopy}
-              className="flex items-center gap-1.5 bg-gray-800 hover:bg-gray-700 text-white px-3 py-2 rounded-xl text-xs font-bold transition border border-gray-700"
-            >
-              {copied ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
-              <span>{copied ? 'Copié !' : 'Copier le texte'}</span>
+          <div className="flex gap-2">
+            <button onClick={handleCopy} className="mr-btn mr-btn-secondary">
+              {copied ? <Check size={14} /> : <Copy size={14} />}
+              <span>{copied ? 'Copié' : 'Copier'}</span>
             </button>
-            <button
-              onClick={handlePrint}
-              className="flex items-center gap-1.5 bg-[#B71C1C] hover:bg-red-700 text-white px-3 py-2 rounded-xl text-xs font-bold transition shadow"
-            >
+            <button onClick={handlePrint} className="mr-btn mr-btn-primary">
               <Printer size={14} />
-              <span>Imprimer l'Acte</span>
+              <span>Imprimer</span>
             </button>
           </div>
         </div>
 
-        {/* Onglets de sélection du modèle */}
-        <div className="flex gap-2 overflow-x-auto pb-2 border-b border-gray-800 mb-3">
+        <div className="flex gap-2 overflow-x-auto pb-2 border-b border-[var(--border)] mb-3">
           {MODELES_JURIDIQUES.map((m) => (
             <button
               key={m.id}
               onClick={() => setSelectedModele(m.id)}
-              className={`text-xs px-3 py-1.5 rounded-lg font-bold whitespace-nowrap transition ${
+              className={`text-xs px-3 py-1.5 rounded font-medium whitespace-nowrap transition ${
                 selectedModele === m.id
-                  ? 'bg-[#FFD54F] text-black shadow'
-                  : 'bg-[#101015] text-gray-400 hover:text-white'
+                  ? 'bg-[var(--accent)] text-black font-semibold'
+                  : 'text-[var(--muted)] hover:text-white bg-[#101015]'
               }`}
             >
               {m.titre.split('(')[0]}
@@ -342,18 +286,11 @@ export function DossierCandidat() {
           ))}
         </div>
 
-        {/* Détail du modèle sélectionné */}
-        <div className="bg-[#101015] p-3 rounded-xl border border-gray-800 mb-3 text-xs">
-          <p className="text-amber-300 font-semibold mb-1">
-            📌 Utilisation recommandée : {currentModeleObj.usage}
-          </p>
-          <p className="text-gray-400 text-[11px]">
-            ⏳ Délai d'action : {currentModeleObj.delaiRecommande}
-          </p>
-        </div>
+        <p className="text-xs text-gray-400 mb-2">
+          {currentModeleObj.usage} • <em>{currentModeleObj.delaiRecommande}</em>
+        </p>
 
-        {/* Zone de prévisualisation du texte généré */}
-        <div className="bg-black/80 rounded-xl p-4 border border-gray-800 font-mono text-xs text-gray-200 overflow-x-auto max-h-80 whitespace-pre-wrap leading-relaxed select-all">
+        <div className="bg-[#101015] rounded p-3 border border-[var(--border)] font-mono text-xs text-gray-300 max-h-72 overflow-y-auto whitespace-pre-wrap leading-relaxed select-all">
           {texteGenere}
         </div>
       </div>
