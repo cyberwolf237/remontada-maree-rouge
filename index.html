@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>La Marée Rouge - La Remontada Électorale 2025</title>
+    
+    <!-- PWA & Mobile Meta -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#B71C1C" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="icon" type="image/jpeg" href="/logo_maree_rouge.jpg" />
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,600;0,700;0,800;0,900;1,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              cmred: {
+                DEFAULT: '#D32F2F',
+                dark: '#B71C1C',
+                deep: '#7F0000',
+                light: '#FF5252'
+              },
+              cmyellow: {
+                DEFAULT: '#FBC02D',
+                gold: '#FFD54F',
+                dark: '#F57F17'
+              },
+              cmgreen: {
+                DEFAULT: '#2E7D32',
+                dark: '#1B5E20'
+              },
+              cmdark: {
+                DEFAULT: '#121212',
+                card: '#1E1E1E',
+                border: '#2A2A2A'
+              }
+            },
+            fontFamily: {
+              heading: ['Montserrat', 'sans-serif'],
+              sans: ['Inter', 'sans-serif']
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      body {
+        font-family: 'Inter', sans-serif;
+        background-color: #0F0F12;
+        color: #F3F4F6;
+        -webkit-tap-highlight-color: transparent;
+      }
+      h1, h2, h3, .font-heading {
+        font-family: 'Montserrat', sans-serif;
+      }
+      /* Custom scrollbars */
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #18181B;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #3F3F46;
+        border-radius: 3px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #D32F2F;
+      }
+    </style>
+  </head>
+  <body class="bg-[#0D0D11] text-gray-100 min-h-screen">
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

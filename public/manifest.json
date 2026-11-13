@@ -1,0 +1,17 @@
+{
+  "short_name": "Marée Rouge",
+  "name": "La Remontada 2025 - Mobilisation des En-Bas d'En-Bas",
+  "description": "Application citoyenne de sécurisation électorale, de veille administrative et d'assistance aux candidats et mandataires au Cameroun.",
+  "icons": [
+    {
+      "src": "/logo_maree_rouge.jpg",
+      "type": "image/jpeg",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#B71C1C",
+  "theme_color": "#D32F2F",
+  "display": "standalone",
+  "orientation": "portrait"
+}
